@@ -1,0 +1,45 @@
+# 1. Name of the workflow - This is what you see in the Actions tab
+name: Build LEAN Engine
+
+# 2. Trigger - This defines WHEN the workflow should run
+on:
+  push:
+    branches: [ main ] # Runs every time you push to the 'main' branch
+  pull_request:
+    branches: [ main ] # Runs on pull requests targeting the 'main' branch
+
+# 3. Jobs - A workflow is made of one or more jobs that run in parallel or sequence
+jobs:
+  # The name of our job (you can call it anything)
+  build-and-test:
+    # 4. Runner - The type of virtual machine to run the job on
+    runs-on: ubuntu-latest # You can use windows-latest, macos-latest, etc.
+
+    # 5. Steps - A sequence of tasks to be executed in the job
+    steps:
+      # Step 1: Check out your repository's code onto the runner
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the required .NET SDK version
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x' # Specify the .NET version needed
+
+      # Step 3: Build the project using the dotnet CLI
+      - name: Build the solution
+        run: dotnet build --configuration Release
+
+      # Step 4: Run any tests (optional but good practice)
+      - name: Run unit tests
+        run: dotnet test --no-build --configuration Release
+
+      # Step 5: Upload the compiled files as a downloadable artifact
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lean-engine-build # The name of the downloadable zip file
+          path: | # The folder(s) containing the files to upload
+            Launcher/bin/Release/
+            QuantConnect.Lean.Engine/bin/Release/
